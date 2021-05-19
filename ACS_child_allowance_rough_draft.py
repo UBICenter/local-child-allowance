@@ -25,3 +25,5 @@ mdf.poverty_rate(person3, "spm_resources", "spm_povthreshold", "wt")
 just_children = person3[(person3.child == 1)]
 mdf.poverty_rate(just_children, "new_resources", "spm_povthreshold", "wt")
 mdf.poverty_rate(just_children, "spm_resources", "spm_povthreshold", "wt")
+
+# Columns for PUMA, child, adult, or all, deep or regular, baseline and reform
