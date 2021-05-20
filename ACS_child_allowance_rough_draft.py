@@ -29,11 +29,8 @@ mdf.poverty_rate(just_children, "new_resources", "spm_povthreshold", "wt")
 mdf.poverty_rate(just_children, "spm_resources", "spm_povthreshold", "wt")
 
 # Columns for PUMA, child, adult, or all, deep or regular, baseline and reform
-<<<<<<< HEAD
 
 
-=======
->>>>>>> b08591eabf6792433a4e15abb4bc94e2ffb8411c
 def pov(data):
     base = mdf.poverty_rate(data, "spm_resources", "spm_povthreshold")
     reform = mdf.poverty_rate(data, "new_resources", "spm_povthreshold")
@@ -48,7 +45,6 @@ def pov(data):
         }
     )
 
-<<<<<<< HEAD
 
 grouped_puma_child = person3.groupby(["puma", "child"]).apply(pov)
 grouped_puma = person3.groupby(["puma"]).apply(pov)
@@ -70,10 +66,27 @@ pip install
 grouped_list = [grouped_puma, grouped_puma_child]
 grouped_df = pd.concat(grouped_list)
 only_children_pumas = grouped_puma_child[(grouped_puma_child.child == 1)]
+
 grouped_df["pct_change"].mean()
-=======
-person3.groupby(["puma", "child"]).apply(pov)
->>>>>>> b08591eabf6792433a4e15abb4bc94e2ffb8411c
+grouped_no_change = grouped_df[(grouped_df["pct_change"] == 0.00001)]
+grouped_puma_no_change = grouped_puma[(grouped_puma["pct_change"] == 0)]
+grouped_no_change.describe()
+grouped_puma_no_change.describe()
+grouped_puma.describe()
+grouped_by_puma = person3.groupby("puma")
+print(grouped_by_puma.head(15))
+person3["puma"].nunique()
+puma_count = person3.groupby(["puma"])["spm_id"].count()
+puma_count.describe()
+grouped_df.to_csv()
+grouped_df.to_csv(r"grouped_df.csv", index=False)
+import plotly.express as px
+
+px.histogram(grouped_df["pct_change"])
+px.histogram(grouped_df["pct_change_deep"])
+
+# About 13% of PUMAs have no change in the poverty rate
+
 # TODO: Add another not grouped by child
 # Add pct change columns for poverty and deep poverty
 # Stack those
