@@ -2,23 +2,27 @@ import numpy as np
 import pandas as pd
 import microdf as mdf
 
-raw = pd.read_stata("spm_2018_pu.dta")  # TODO: specify usecols
+raw = pd.read_stata(
+    "spm_2018_pu.dta",
+    columns=[
+        "spm_id",
+        "puma",
+        "spm_povthreshold",
+        "spm_resources",
+        "age",
+        "spm_totval",
+        "st",
+        "wt",
+    ],
+)
 print(raw.columns.values)
 
-# VAR LIST: 'spm_id' 'spm_capwkccxpns' 'spm_povthreshold' 'spm_resources' 'spm_poor'
-# 'sporder' 'puma' 'age' 'hispanic' 'race' 'st' 'spm_numper'
-# 'spm_numadults' 'spm_numkids' 'spm_totval' 'spm_fica' 'spm_fedtax'
-# 'spm_fedtax\bc' 'spm_sttax' 'spm_wkxpns' 'spm_eitc' 'spm_wcohabit'
-# 'spm_snapsub' 'spm_engval' 'spm_childcarexpns' 'spm_wicval'
-# 'spm_schlunch' 'spm_tenmortstatus' 'spm_geoadj' 'spm_equivscale'
-# 'spm_caphousesub' 'offpoor' 'wt' 'serialno' 'mar' 'education' 'sex'
-# 'spm_wui_lt15' 'spm_medxpns'
+# VAR LIST: 'spm_id' 'spm_povthreshold' 'spm_resources'
+#  'puma' 'age' 'st' 'spm_totval' 'wt'
 
 person = raw
 person["child"] = np.where(person["age"] < 18, 1, 0)
-spmu = (
-    person.groupby(["spm_id", "spm_resources"])[["child"]].sum().reset_index()
-)
+spmu = person.groupby(["spm_id", "spm_resources"])[["child"]].sum().reset_index()
 spmu.rename(columns={"child": "spmu_children"}, inplace=True)
 spmu["new_resources"] = spmu["spm_resources"] + 1200 * spmu["spmu_children"]
 person3 = person.merge(spmu[["new_resources", "spm_id"]], on=["spm_id"])
@@ -27,15 +31,14 @@ mdf.poverty_rate(person3, "spm_resources", "spm_povthreshold", "wt")
 just_children = person3[(person3.child == 1)]
 mdf.poverty_rate(just_children, "new_resources", "spm_povthreshold", "wt")
 mdf.poverty_rate(just_children, "spm_resources", "spm_povthreshold", "wt")
-
 # Columns for PUMA, child, adult, or all, deep or regular, baseline and reform
 
 
 def pov(data):
-    base = mdf.poverty_rate(data, "spm_resources", "spm_povthreshold")
-    reform = mdf.poverty_rate(data, "new_resources", "spm_povthreshold")
-    deep_base = mdf.deep_poverty_rate(data, "spm_resources", "spm_povthreshold")
-    deep_reform = mdf.deep_poverty_rate(data, "new_resources", "spm_povthreshold")
+    base = mdf.poverty_rate(data, "spm_resources", "spm_povthreshold", "wt")
+    reform = mdf.poverty_rate(data, "new_resources", "spm_povthreshold", "wt")
+    deep_base = mdf.deep_poverty_rate(data, "spm_resources", "spm_povthreshold", "wt")
+    deep_reform = mdf.deep_poverty_rate(data, "new_resources", "spm_povthreshold", "wt")
     return pd.Series(
         {
             "poverty_base": base,
@@ -46,8 +49,9 @@ def pov(data):
     )
 
 
-grouped_puma_child = person3.groupby(["puma", "child"]).apply(pov)
-grouped_puma = person3.groupby(["puma"]).apply(pov)
+grouped_puma_child = person3.groupby(["puma", "child"]).apply(pov).reset_index()
+grouped_puma = person3.groupby(["puma"]).apply(pov).reset_index()
+grouped_puma
 grouped_puma_child["pct_change"] = (
     grouped_puma_child["poverty_base"] - grouped_puma_child["poverty_reform"]
 ) / grouped_puma_child["poverty_base"]
@@ -58,28 +62,13 @@ grouped_puma["pct_change"] = (
     grouped_puma["poverty_base"] - grouped_puma["poverty_reform"]
 ) / grouped_puma["poverty_base"]
 grouped_puma["pct_change_deep"] = (
-    grouped_puma["deep_poverty_base"] - grouped_puma["deep_poverty_reform"]
-) / grouped_puma["deep_poverty_base"]
-grouped_puma_child.groupby("child").mean()
-grouped_puma_child.groupby("child").std()
-pip install 
+    grouped_puma_child["deep_poverty_base"] - grouped_puma_child["deep_poverty_reform"]
+) / grouped_puma_child["deep_poverty_base"]
 grouped_list = [grouped_puma, grouped_puma_child]
-grouped_df = pd.concat(grouped_list)
+grouped_df = pd.concat(grouped_list).reset_index()
 only_children_pumas = grouped_puma_child[(grouped_puma_child.child == 1)]
-
-grouped_df["pct_change"].mean()
-grouped_no_change = grouped_df[(grouped_df["pct_change"] == 0.00001)]
 grouped_puma_no_change = grouped_puma[(grouped_puma["pct_change"] == 0)]
-grouped_no_change.describe()
-grouped_puma_no_change.describe()
-grouped_puma.describe()
-grouped_by_puma = person3.groupby("puma")
-print(grouped_by_puma.head(15))
-person3["puma"].nunique()
-puma_count = person3.groupby(["puma"])["spm_id"].count()
-puma_count.describe()
-grouped_df.to_csv()
-grouped_df.to_csv(r"grouped_df.csv", index=False)
+grouped_df.to_csv(r"spm_by_puma.csv")
 import plotly.express as px
 
 px.histogram(grouped_df["pct_change"])
@@ -87,10 +76,103 @@ px.histogram(grouped_df["pct_change_deep"])
 
 # About 13% of PUMAs have no change in the poverty rate
 
-# TODO: Add another not grouped by child
-# Add pct change columns for poverty and deep poverty
-# Stack those
-
-# TODO:
-# - Export to csv (data/poverty.csv)
-# - import plotly.express as px; px.hist
+mapping_house = pd.read_csv(
+    "Mapping1.csv",
+    usecols=["Assembly District Number", "PUMA Description", "STATEFIP", "PUMA"],
+)
+mapping_senate = pd.read_csv("Mapping2.csv", usecols=["Senate District Number", "PUMA"])
+mapping_house
+mapping_senate
+mapping_merged = mapping_house.merge(
+    mapping_senate[["Senate District Number", "PUMA"]], on=["PUMA"]
+)
+mapping_merged
+### Just California
+just_california = person3[(person3.st == 6)].reset_index()
+just_california_children = just_california[(just_california.child == 1)].reset_index()
+# by individual
+poverty_change_CA = pov(just_california)
+poverty_change_CA
+poverty_change_CA_children = pov(just_california_children)
+poverty_change_CA_children
+mapping_CA = mapping_merged[(mapping_merged["STATEFIP"] == 6)].reset_index()
+mapping_CA = mapping_CA.rename(columns={"PUMA": "puma"})
+mapping_CA = mapping_CA.drop(columns=["STATEFIP", "index"])
+just_california["puma"] = just_california["puma"].astype(int)
+just_california["puma"]
+just_california["puma"] = just_california.puma - 600000
+just_california["puma"]
+merged_individuals = just_california.merge(
+    mapping_CA[
+        [
+            "PUMA Description",
+            "puma",
+            "Assembly District Number",
+            "Senate District Number",
+        ]
+    ],
+    on=["puma"],
+).reset_index()
+print(merged_individuals)
+# 2x more rows?
+pov(merged_individuals)
+poverty_change_CA
+merged_individuals.puma.nunique()
+just_california.puma.nunique()
+# Difference likely from four missing pumas
+pov_by_assembly = (
+    merged_individuals.groupby(["Assembly District Number",]).apply(pov).reset_index()
+)
+pov_by_assembly_children = (
+    merged_individuals.groupby(["Assembly District Number", "child"])
+    .apply(pov)
+    .reset_index()
+)
+pov_by_senate = (
+    merged_individuals.groupby(["Senate District Number"]).apply(pov).reset_index()
+)
+pov_by_senate_children = (
+    merged_individuals.groupby(["Senate District Number", "child"])
+    .apply(pov)
+    .reset_index()
+)
+pov_by_assembly_children
+pov_by_senate_children
+pov_by_assembly["pct_change"] = (
+    pov_by_assembly["poverty_base"] - pov_by_assembly["poverty_reform"]
+) / pov_by_assembly["poverty_base"]
+pov_by_assembly["pct_change_deep"] = (
+    pov_by_assembly["deep_poverty_base"] - pov_by_assembly["deep_poverty_reform"]
+) / pov_by_assembly["deep_poverty_base"]
+pov_by_assembly_children["pct_change"] = (
+    pov_by_assembly_children["poverty_base"]
+    - pov_by_assembly_children["poverty_reform"]
+) / pov_by_assembly_children["poverty_base"]
+pov_by_assembly_children["pct_change_deep"] = (
+    pov_by_assembly_children["deep_poverty_base"]
+    - pov_by_assembly_children["deep_poverty_reform"]
+) / pov_by_assembly_children["deep_poverty_base"]
+pov_by_assembly_only_children = pov_by_assembly_children[
+    (pov_by_assembly_children.child == 1)
+]
+pov_by_senate["pct_change"] = (
+    pov_by_senate["poverty_base"] - pov_by_senate["poverty_reform"]
+) / pov_by_senate["poverty_base"]
+pov_by_senate["pct_change_deep"] = (
+    pov_by_senate["deep_poverty_base"] - pov_by_senate["deep_poverty_reform"]
+) / pov_by_senate["deep_poverty_base"]
+pov_by_senate_children["pct_change"] = (
+    pov_by_senate_children["poverty_base"] - pov_by_senate_children["poverty_reform"]
+) / pov_by_senate_children["poverty_base"]
+pov_by_senate_children["pct_change_deep"] = (
+    pov_by_senate_children["deep_poverty_base"]
+    - pov_by_senate_children["deep_poverty_reform"]
+) / pov_by_senate_children["deep_poverty_base"]
+pov_by_senate_children = pov_by_senate_children[(pov_by_senate_children.child == 1)]
+pov_by_senate_children.describe()
+pov_by_assembly_only_children.describe()
+pov_by_senate
+pov_by_senate.to_csv(r"pov_by_senate.csv")
+pov_by_senate_children.to_csv(r"pov_by_senate_children.csv")
+pov_by_assembly.to_csv(r"pov_by_assembly.csv")
+pov_by_assembly_children.to_csv(r"pov_by_assembly_children.csv")
