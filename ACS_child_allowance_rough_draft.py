@@ -21,6 +21,24 @@ print(raw.columns.values)
 #  'puma' 'age' 'st' 'spm_totval' 'wt'
 
 person = raw
+mapping_house = pd.read_csv(
+    "Mapping1.csv",
+    usecols=["Assembly District Number", "PUMA Description", "STATEFIP", "PUMA"],
+)
+mapping_senate = pd.read_csv(
+    "Mapping2.csv", usecols=["Senate District Number", "PUMA", "STATEFIP"]
+)
+mapping_senate
+mapping_house
+mapping_senate["Senate District Number"].nunique()
+mapping_senate_CA = mapping_senate[(mapping_senate["STATEFIP"] == 6)]
+mapping_house_CA = mapping_house[(mapping_house["STATEFIP"] == 6)]
+mapping_merged_CA = mapping_house_CA.merge(
+    mapping_senate_CA[["Senate District Number", "PUMA"]], on=["PUMA"]
+)
+mapping_merged_CA = mapping_merged_CA.rename(columns={"PUMA": "puma"})
+mapping_merged_CA
+
 person["child"] = np.where(person["age"] < 18, 1, 0)
 spmu = person.groupby(["spm_id", "spm_resources"])[["child"]].sum().reset_index()
 spmu.rename(columns={"child": "spmu_children"}, inplace=True)
@@ -76,34 +94,19 @@ px.histogram(grouped_df["pct_change_deep"])
 
 # About 13% of PUMAs have no change in the poverty rate
 
-mapping_house = pd.read_csv(
-    "Mapping1.csv",
-    usecols=["Assembly District Number", "PUMA Description", "STATEFIP", "PUMA"],
-)
-mapping_senate = pd.read_csv("Mapping2.csv", usecols=["Senate District Number", "PUMA"])
-mapping_house
-mapping_senate
-mapping_merged = mapping_house.merge(
-    mapping_senate[["Senate District Number", "PUMA"]], on=["PUMA"]
-)
-mapping_merged
 ### Just California
 just_california = person3[(person3.st == 6)].reset_index()
 just_california_children = just_california[(just_california.child == 1)].reset_index()
 # by individual
 poverty_change_CA = pov(just_california)
-poverty_change_CA
 poverty_change_CA_children = pov(just_california_children)
 poverty_change_CA_children
-mapping_CA = mapping_merged[(mapping_merged["STATEFIP"] == 6)].reset_index()
-mapping_CA = mapping_CA.rename(columns={"PUMA": "puma"})
-mapping_CA = mapping_CA.drop(columns=["STATEFIP", "index"])
 just_california["puma"] = just_california["puma"].astype(int)
 just_california["puma"]
 just_california["puma"] = just_california.puma - 600000
 just_california["puma"]
-merged_individuals = just_california.merge(
-    mapping_CA[
+merged_individuals_CA = just_california.merge(
+    mapping_merged_CA[
         [
             "PUMA Description",
             "puma",
@@ -112,27 +115,27 @@ merged_individuals = just_california.merge(
         ]
     ],
     on=["puma"],
-).reset_index()
-print(merged_individuals)
-# 2x more rows?
-pov(merged_individuals)
+)
+pov(merged_individuals_CA)
 poverty_change_CA
-merged_individuals.puma.nunique()
+merged_individuals_CA.puma.nunique()
 just_california.puma.nunique()
 # Difference likely from four missing pumas
 pov_by_assembly = (
-    merged_individuals.groupby(["Assembly District Number",]).apply(pov).reset_index()
+    merged_individuals_CA.groupby(["Assembly District Number",])
+    .apply(pov)
+    .reset_index()
 )
 pov_by_assembly_children = (
-    merged_individuals.groupby(["Assembly District Number", "child"])
+    merged_individuals_CA.groupby(["Assembly District Number", "child"])
     .apply(pov)
     .reset_index()
 )
 pov_by_senate = (
-    merged_individuals.groupby(["Senate District Number"]).apply(pov).reset_index()
+    merged_individuals_CA.groupby(["Senate District Number"]).apply(pov).reset_index()
 )
 pov_by_senate_children = (
-    merged_individuals.groupby(["Senate District Number", "child"])
+    merged_individuals_CA.groupby(["Senate District Number", "child"])
     .apply(pov)
     .reset_index()
 )
@@ -169,10 +172,7 @@ pov_by_senate_children["pct_change_deep"] = (
     - pov_by_senate_children["deep_poverty_reform"]
 ) / pov_by_senate_children["deep_poverty_base"]
 pov_by_senate_children = pov_by_senate_children[(pov_by_senate_children.child == 1)]
-pov_by_senate_children.describe()
-pov_by_assembly_only_children.describe()
-pov_by_senate
-pov_by_senate.to_csv(r"pov_by_senate.csv")
-pov_by_senate_children.to_csv(r"pov_by_senate_children.csv")
-pov_by_assembly.to_csv(r"pov_by_assembly.csv")
-pov_by_assembly_children.to_csv(r"pov_by_assembly_children.csv")
+pov_by_senate.to_csv(r"pov_by_senate_CA.csv")
+pov_by_senate_children.to_csv(r"pov_by_senate_children_CA.csv")
+pov_by_assembly.to_csv(r"pov_by_assembly_CA.csv")
+pov_by_assembly_children.to_csv(r"pov_by_assembly_children_CA.csv")
