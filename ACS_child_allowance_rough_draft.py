@@ -95,7 +95,8 @@ px.histogram(grouped_df["pct_change_deep"])
 # About 13% of PUMAs have no change in the poverty rate
 
 ### Just California
-just_california = person3[(person3.st == 6)].reset_index()
+CA_FIPS = 6
+just_california = person3[(person3.st == CA_FIPS)].reset_index()
 just_california_children = just_california[(just_california.child == 1)].reset_index()
 # by individual
 poverty_change_CA = pov(just_california)
