@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import microdf as mdf
 
-raw = pd.read_stata(
+person = pd.read_stata(
     "spm_2018_pu.dta",
     columns=[
         "spm_id",
