@@ -40,7 +40,8 @@ mapping_merged_CA
 person["child"] = np.where(person["age"] < 18, 1, 0)
 spmu = person.groupby(["spm_id", "spm_resources"])[["child"]].sum().reset_index()
 spmu.rename(columns={"child": "spmu_children"}, inplace=True)
-spmu["new_resources"] = spmu["spm_resources"] + 1200 * spmu["spmu_children"]
+ANNUAL_CHILD_ALLOWANCE = 1200
+spmu["new_resources"] = spmu.spm_resources + ANNUAL_CHILD_ALLOWANCE * spmu.spmu_children
 person3 = person.merge(spmu[["new_resources", "spm_id"]], on=["spm_id"])
 mdf.poverty_rate(person3, "new_resources", "spm_povthreshold", "wt")
 mdf.poverty_rate(person3, "spm_resources", "spm_povthreshold", "wt")
