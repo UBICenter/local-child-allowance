@@ -15,12 +15,10 @@ person = pd.read_stata(
         "wt",
     ],
 )
-print(raw.columns.values)
 
 # VAR LIST: 'spm_id' 'spm_povthreshold' 'spm_resources'
 #  'puma' 'age' 'st' 'spm_totval' 'wt'
 
-person = raw
 mapping_house = pd.read_csv(
     "Mapping1.csv",
     usecols=["Assembly District Number", "PUMA Description", "STATEFIP", "PUMA"],
@@ -69,7 +67,6 @@ def pov(data):
 
 grouped_puma_child = person3.groupby(["puma", "child"]).apply(pov).reset_index()
 grouped_puma = person3.groupby(["puma"]).apply(pov).reset_index()
-grouped_puma
 grouped_puma_child["pct_change"] = (
     grouped_puma_child["poverty_base"] - grouped_puma_child["poverty_reform"]
 ) / grouped_puma_child["poverty_base"]
@@ -103,9 +100,7 @@ poverty_change_CA = pov(just_california)
 poverty_change_CA_children = pov(just_california_children)
 poverty_change_CA_children
 just_california["puma"] = just_california["puma"].astype(int)
-just_california["puma"]
 just_california["puma"] = just_california.puma - 600000
-just_california["puma"]
 merged_individuals_CA = just_california.merge(
     mapping_merged_CA[
         [
