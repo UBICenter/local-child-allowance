@@ -20,7 +20,6 @@ print(raw.columns.values)
 # VAR LIST: 'spm_id' 'spm_povthreshold' 'spm_resources'
 #  'puma' 'age' 'st' 'spm_totval' 'wt'
 
-person = raw
 mapping_house = pd.read_csv(
     "Mapping1.csv",
     usecols=["Assembly District Number", "PUMA Description", "STATEFIP", "PUMA"],
