@@ -1,0 +1,1 @@
+* `National_2018SLDL.txt.gzip` and `National_2018SLDU.txt.gzip` created by unzipping `sldl_2018.zip` and `sldu_2018.zip`, respectively, and zipping `National_2018SLD{U,L}.txt` (one of several contents)
