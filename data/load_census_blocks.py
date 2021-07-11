@@ -11,25 +11,26 @@ l = []
 
 STATE_FIPS_REMOVE = [3, 5, 7, 14, 43, 52]
 # Including DC.
-state_fips = [i for i in [*range(1, 57)] if i not in STATE_FIPS_REMOVE]
+all_state_fips = [i for i in [*range(1, 57)] if i not in STATE_FIPS_REMOVE]
 
-for i in state_fips:
-    print("Loading state %s" % i)
-    l.append(
-        censusdata.download(
-            "sf1",
-            2010,
-            censusdata.censusgeo(
-                [
-                    ("state", str(i).zfill(2)),
-                    ("county", "*"),
-                    ("tract", "*"),
-                    ("block", "*"),
-                ]
-            ),
-            ["STATE", "COUNTY", "TRACT", "BLOCK", "P001001"],
-        )
+
+def get_state_data(state_fips):
+    geo = censusdata.censusgeo(
+        [
+            ("state", str(state_fips).zfill(2)),
+            ("county", "*"),
+            ("tract", "*"),
+            ("block", "*"),
+        ]
     )
+    return censusdata.download(
+        "sf1", 2010, geo, ["STATE", "COUNTY", "TRACT", "BLOCK", "P001001"],
+    )
+
+
+for i in all_state_fips:
+    print("Loading state %s" % i)
+    l.append(get_state_data(i))
 
 all_blocks = pd.concat(l)
 
