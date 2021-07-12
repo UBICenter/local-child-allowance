@@ -61,4 +61,6 @@ OUT_COLS = [
     "lower_leg_district",
     "upper_leg_district",
 ]
-block[OUT_COLS].to_csv("master_block.csv.gz", index=False, compression="gzip")
+block[OUT_COLS].to_csv(
+    "data/master_block.csv.gz", index=False, compression="gzip"
+)
