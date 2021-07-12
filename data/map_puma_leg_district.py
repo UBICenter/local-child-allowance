@@ -7,31 +7,32 @@ block = pd.read_csv(
         "state_fip",
         "lower_leg_district",
         "upper_leg_district",
-        "P001001",
+        "population",
     ],
+    dtype={"lower_leg_district": str, "upper_leg_district": str},
 )
 # Limit to blocks with population.
-block = block[block.P001001 > 0]
+block = block[block.population > 0]
 
 PUMA_KEYS = ["state_fip", "puma"]
 
 puma_pop = (
-    block.groupby(PUMA_KEYS)[["P001001"]]
+    block.groupby(PUMA_KEYS)[["population"]]
     .sum()
-    .rename(columns={"P001001": "puma_pop"})
+    .rename(columns={"population": "puma_pop"})
     .reset_index()
 )
 
 
 def write_puma_intersection(key, fname):
     puma_leg = (
-        block.groupby(PUMA_KEYS + key)[["P001001"]]
+        block.groupby(PUMA_KEYS + key)[["population"]]
         .sum()
         .reset_index()
         .merge(puma_pop, on=PUMA_KEYS)
     )
 
-    puma_leg["share_of_puma_pop"] = puma_leg.P001001 / puma_leg.puma_pop
+    puma_leg["share_of_puma_pop"] = puma_leg.population / puma_leg.puma_pop
 
     puma_leg.to_csv("data/" + fname + ".csv", index=False)
 

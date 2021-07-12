@@ -7,6 +7,7 @@ block = pd.read_csv("data/raw/census_block.csv.gz").rename(
         "COUNTY": "county_fip",
         "TRACT": "census_tract",
         "BLOCK": "block",
+        "P001001": "population",
     }
 )
 lower_state_district = pd.read_csv(
@@ -57,7 +58,7 @@ OUT_COLS = [
     "census_tract",
     "puma",
     "block",
-    "P001001",
+    "population",
     "lower_leg_district",
     "upper_leg_district",
 ]
