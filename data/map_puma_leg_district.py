@@ -1,72 +1,44 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# NOTICE
-## YOU WILL HAVE TO UNZIP THE SHAPEFILES WHERE THEY ARE CURRENTLY PLACED IN THE DIRECTORY FOR THIS TO WORK
-## Upper and Lower legislative chamber shapefiles from https://www.census.gov/geographies/mapping-files/time-series/geo/cartographic-boundary.html
-## PUMA Boundaries from https://usa.ipums.org/usa/volii/pumas10.shtml
 import pandas as pd
-import geopandas as gpd
-from geopandas.tools import sjoin
 
-
-##Lower Chamber for All 50 States
-
-assembly = gpd.read_file(
-    "data\original\cb_2019_us_sldl_500k\cb_2019_us_sldl_500k.shp", encoding="utf-8"
+block = pd.read_csv(
+    "data/master_block.csv.gz",
+    usecols=[
+        "puma",
+        "state_fip",
+        "lower_leg_district",
+        "upper_leg_district",
+        "P001001",
+    ],
 )
+# Limit to blocks with population.
+block = block[block.P001001 > 0]
 
-##Upper Chamber for All 50 States
+PUMA_KEYS = ["state_fip", "puma"]
 
-senate = gpd.read_file(
-    "data\original\cb_2019_us_sldu_500k\cb_2019_us_sldu_500k.shp", encoding="utf-8"
-)
-
-##Load PUMA Boundaries, limit to California (State FIP 06 represents CA)
-
- us_puma = gpd.read_file(
-    "data\original\ipums_puma_2010\ipums_puma_2010.shp", encoding="utf-8"
- )
-
-# ca_puma = us_puma.drop(us_puma[us_puma['STATEFIP'] != '06'].index, inplace = True)
-
-## Ensure CRS is the same for all three maps
-
-assembly = assembly.to_crs(us_puma.crs)
-
-senate = senate.to_crs(us_puma.crs)
-
-### find centroid coordinates
-
-us_puma_pt = us_puma.copy()
-
-us_puma_pt.geometry = us_puma_pt.centroid
-
-## Point in polygon for puma coordinates within state assembly districts
-
-pumas_by_assembly = gpd.sjoin(assembly, us_puma_pt, how="inner", op="contains")
-
-pumas_by_assembly = pumas_by_assembly[
-    ["NAME", "STATEFIP", "PUMA", "Name", "STATEFIP"]
-].copy()
-
-pumas_by_assembly = pumas_by_assembly.rename(
-    columns={"NAME": "Assembly District Number", "Name": "PUMA Description"}
-)
-
-## Point-in-polygon for puma coordinates within state senate districts
-
-pumas_by_senate = gpd.sjoin(senate, us_puma_pt, how="inner", op="contains")
-
-pumas_by_senate = pumas_by_senate[["NAME", "STATEFIP", "PUMA", "Name"]].copy()
-
-pumas_by_senate = pumas_by_senate.rename(
-    columns={"NAME": "Senate District Number", "Name": "PUMA Description"}
+puma_pop = (
+    block.groupby(PUMA_KEYS)[["P001001"]]
+    .sum()
+    .rename(columns={"P001001": "puma_pop"})
+    .reset_index()
 )
 
 
-puma_to_state_legis_mapping = pd.merge(pumas_by_senate, pumas_by_assembly, on="PUMA")
+def write_puma_intersection(key, fname):
+    puma_leg = (
+        block.groupby(PUMA_KEYS + key)[["P001001"]]
+        .sum()
+        .reset_index()
+        .merge(puma_pop, on=PUMA_KEYS)
+    )
+
+    puma_leg["share_of_puma_pop"] = puma_leg.P001001 / puma_leg.puma_pop
+
+    puma_leg.to_csv("data/" + fname + ".csv", index=False)
 
 
-puma_to_state_legis_mapping.to_csv("data\\puma_to_state_legis_mapping.csv", index=False)
-
+write_puma_intersection(
+    ["lower_leg_district", "upper_leg_district"],
+    "puma_upper_lower_leg_district",
+)
+write_puma_intersection(["lower_leg_district"], "puma_lower_leg_district")
+write_puma_intersection(["upper_leg_district"], "puma_upper_leg_district")
