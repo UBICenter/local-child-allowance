@@ -4,6 +4,7 @@ block = pd.read_csv(
     "data/master_block.csv.gz",
     usecols=[
         "puma",
+        "county",
         "state_fip",
         "lower_leg_district",
         "upper_leg_district",
@@ -38,8 +39,8 @@ def write_puma_intersection(key, fname):
 
 
 write_puma_intersection(
-    ["lower_leg_district", "upper_leg_district"],
-    "puma_upper_lower_leg_district",
+    ["lower_leg_district", "upper_leg_district"], "puma_upper_lower_leg_district",
 )
 write_puma_intersection(["lower_leg_district"], "puma_lower_leg_district")
 write_puma_intersection(["upper_leg_district"], "puma_upper_leg_district")
+write_puma_intersection(["county"], "puma_county")
