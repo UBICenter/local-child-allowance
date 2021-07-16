@@ -9,7 +9,7 @@ import censusdata
 
 l = []
 
-STATE_FIPS_REMOVE = [3, 5, 7, 14, 43, 52]
+STATE_FIPS_REMOVE = [3, 7, 14, 43, 52]
 # Including DC.
 all_state_fips = [i for i in [*range(1, 57)] if i not in STATE_FIPS_REMOVE]
 
@@ -34,6 +34,4 @@ for i in all_state_fips:
 
 all_blocks = pd.concat(l)
 
-all_blocks.to_csv(
-    "data/raw/census_block.csv.gz", index=False, compression="gzip"
-)
+all_blocks.to_csv("data/raw/census_block.csv.gz", index=False, compression="gzip")
