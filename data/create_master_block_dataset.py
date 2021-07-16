@@ -16,9 +16,7 @@ lower_state_district = pd.read_csv(
 upper_state_district = pd.read_csv(
     "data/raw/National_2018SLDU.txt.gz", dtype="str"
 ).rename(columns={"DISTRICT": "upper_leg_district"})
-tract_to_puma = pd.read_csv(
-    "data/raw/2010_Census_Tract_to_2010_PUMA.txt.gz"
-).rename(
+tract_to_puma = pd.read_csv("data/raw/2010_Census_Tract_to_2010_PUMA.txt.gz").rename(
     columns={
         "STATEFP": "state_fip",
         "COUNTYFP": "county_fip",
@@ -29,7 +27,9 @@ tract_to_puma = pd.read_csv(
 
 # Preprocess data.
 # Deconstruct BLOCKID into block/tract/county/state
-state_district = lower_state_district.merge(upper_state_district, on="BLOCKID")
+state_district = lower_state_district.merge(
+    upper_state_district, on="BLOCKID", how="outer"
+)
 state_district["state_fip"] = state_district.BLOCKID.str[0:2]
 state_district["county_fip"] = state_district.BLOCKID.str[2:5]
 state_district["census_tract"] = state_district.BLOCKID.str[5:11]
@@ -62,6 +62,4 @@ OUT_COLS = [
     "lower_leg_district",
     "upper_leg_district",
 ]
-block[OUT_COLS].to_csv(
-    "data/master_block.csv.gz", index=False, compression="gzip"
-)
+block[OUT_COLS].to_csv("data/master_block.csv.gz", index=False, compression="gzip")
