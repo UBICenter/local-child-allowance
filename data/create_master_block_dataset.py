@@ -16,7 +16,9 @@ lower_state_district = pd.read_csv(
 upper_state_district = pd.read_csv(
     "data/raw/National_2018SLDU.txt.gz", dtype="str"
 ).rename(columns={"DISTRICT": "upper_leg_district"})
-tract_to_puma = pd.read_csv("data/raw/2010_Census_Tract_to_2010_PUMA.txt.gz").rename(
+tract_to_puma = pd.read_csv(
+    "data/raw/2010_Census_Tract_to_2010_PUMA.txt.gz"
+).rename(
     columns={
         "STATEFP": "state_fip",
         "COUNTYFP": "county_fip",
@@ -62,4 +64,6 @@ OUT_COLS = [
     "lower_leg_district",
     "upper_leg_district",
 ]
-block[OUT_COLS].to_csv("data/master_block.csv.gz", index=False, compression="gzip")
+block[OUT_COLS].to_csv(
+    "data/master_block.csv.gz", index=False, compression="gzip"
+)

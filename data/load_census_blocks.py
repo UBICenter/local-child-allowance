@@ -24,7 +24,10 @@ def get_state_data(state_fips):
         ]
     )
     return censusdata.download(
-        "sf1", 2010, geo, ["STATE", "COUNTY", "TRACT", "BLOCK", "P001001"],
+        "sf1",
+        2010,
+        geo,
+        ["STATE", "COUNTY", "TRACT", "BLOCK", "P001001"],
     )
 
 
@@ -34,4 +37,6 @@ for i in all_state_fips:
 
 all_blocks = pd.concat(l)
 
-all_blocks.to_csv("data/raw/census_block.csv.gz", index=False, compression="gzip")
+all_blocks.to_csv(
+    "data/raw/census_block.csv.gz", index=False, compression="gzip"
+)
