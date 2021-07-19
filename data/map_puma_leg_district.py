@@ -4,6 +4,7 @@ block = pd.read_csv(
     "data/master_block.csv.gz",
     usecols=[
         "puma",
+        "county_fip",
         "state_fip",
         "lower_leg_district",
         "upper_leg_district",
@@ -13,6 +14,10 @@ block = pd.read_csv(
 )
 # Limit to blocks with population.
 block = block[block.population > 0]
+
+# Fill NA values in the master_block file
+
+block.fillna(0, inplace=True)
 
 PUMA_KEYS = ["state_fip", "puma"]
 
@@ -43,3 +48,4 @@ write_puma_intersection(
 )
 write_puma_intersection(["lower_leg_district"], "puma_lower_leg_district")
 write_puma_intersection(["upper_leg_district"], "puma_upper_leg_district")
+write_puma_intersection(["county_fip"], "puma_county")

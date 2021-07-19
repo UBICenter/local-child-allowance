@@ -9,7 +9,7 @@ import censusdata
 
 l = []
 
-STATE_FIPS_REMOVE = [3, 5, 7, 14, 43, 52]
+STATE_FIPS_REMOVE = [3, 7, 14, 43, 52]
 # Including DC.
 all_state_fips = [i for i in [*range(1, 57)] if i not in STATE_FIPS_REMOVE]
 
@@ -24,7 +24,10 @@ def get_state_data(state_fips):
         ]
     )
     return censusdata.download(
-        "sf1", 2010, geo, ["STATE", "COUNTY", "TRACT", "BLOCK", "P001001"],
+        "sf1",
+        2010,
+        geo,
+        ["STATE", "COUNTY", "TRACT", "BLOCK", "P001001"],
     )
 
 

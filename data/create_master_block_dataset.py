@@ -29,7 +29,9 @@ tract_to_puma = pd.read_csv(
 
 # Preprocess data.
 # Deconstruct BLOCKID into block/tract/county/state
-state_district = lower_state_district.merge(upper_state_district, on="BLOCKID")
+state_district = lower_state_district.merge(
+    upper_state_district, on="BLOCKID", how="outer"
+)
 state_district["state_fip"] = state_district.BLOCKID.str[0:2]
 state_district["county_fip"] = state_district.BLOCKID.str[2:5]
 state_district["census_tract"] = state_district.BLOCKID.str[5:11]
