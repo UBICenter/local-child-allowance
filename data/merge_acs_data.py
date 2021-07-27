@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from pandas.core.reshape.merge import merge
 
 # Read in two files - one, a population by geography file produced by NHGIS
 # The data can be found with these filters:
@@ -11,8 +12,8 @@ import numpy as np
 # See 'create_master_block_dataset.py'
 
 
-acs = pd.read_csv(
-    r"C:\UBICenter\local-child-allowance\data\original\nhgis\nhgis0002_ds244_20195_2019_blck_grp.csv",
+acs_block_groups = pd.read_csv(
+    "original/nhgis/nhgis0002_csv/nhgis0002_ds244_20195_2019_blck_grp.csv",
     usecols=[
         "YEAR",
         "STATEA",
@@ -27,10 +28,7 @@ acs = pd.read_csv(
 
 # low_memory = False is necessary to avoid an error message when loading in the huge block-level data
 
-blocks = pd.read_csv(
-    r"C:\UBICenter\local-child-allowance\data\master_block.csv.gz",
-    low_memory=False,
-)
+blocks = pd.read_csv("master_block.csv.gz", low_memory=False,)
 
 
 # Fill missing values that interfere with merge with 0
@@ -38,27 +36,24 @@ blocks = pd.read_csv(
 blocks.fillna(0)
 
 
-# The blockgroup is the same as the first digit of the four digit block number. Therefore, we can obtain it by integer dividing
-# 1000
+# The blockgroup is the same as the first digit of the four digit block number.
+# Therefore, we can obtain it by integer dividing by 1000
 
-blocks["block_group"] = (blocks["block"]) // 1000
+blocks["block_group"] = blocks.block // 1000
 
 
 # Here we aggregate our block level data up to the block group level, so that we can then join it with the ACS data,
 # which is also at the block group level
 
-block_group = (
-    blocks.groupby(["state_fip", "county_fip", "census_tract", "block_group"])[
-        ["population"]
-    ]
-    .sum()
-    .reset_index()
-)
+
+merge_list = ["state_fip", "county_fip", "census_tract", "block_group"]
+
+block_group = blocks.groupby(merge_list)[["population"]].sum().reset_index()
 
 
 # Renaming columns to simplify merging
 
-acs.rename(
+acs_block_groups.rename(
     columns={
         "STATEA": "state_fip",
         "COUNTYA": "county_fip",
@@ -75,53 +70,60 @@ acs.rename(
 # Merging the ACS and aggregated block data
 
 acs_block_data = pd.merge(
-    acs,
-    block_group,
-    on=["state_fip", "county_fip", "census_tract", "block_group"],
-    how="outer",
+    acs_block_groups, block_group, on=merge_list, how="outer",
 )
 
 
 # Finding the percentage change in population in each block group from 2010 to 2019 using ACS data
 
 acs_block_data["block_group_adjustment_factor"] = (
-    acs_block_data["acs_population"] / acs_block_data["population"]
+    acs_block_data.acs_population / acs_block_data.population
 )
 
 
 # Using integer division once again to find the block group of a given block
 
-blocks["block_group"] = blocks["block"] // 1000
+blocks["block_group"] = blocks.block // 1000
 
 
 # Merging the acs block group level data back onto the more detailed block level data we started with.
 # This will allow us to apply the adjustment factor that we found above to all of the blocks within a block group
 
-adjusted_blocks = pd.merge(
-    acs_block_data,
-    blocks,
-    on=["state_fip", "county_fip", "census_tract", "block_group"],
-    how="outer",
-)
+adjusted_blocks = pd.merge(acs_block_data, blocks, on=merge_list, how="outer",)
 
 
 # Renaming for simplicity
 
 adjusted_blocks = adjusted_blocks.rename(
     columns={
-        "acs_population": "acs_bg_population_2019",
+        "acs_population": "acs_bg_pop_2019",
         "population_x": "total_bg_pop_2010",
-        "population_y": "block_population_2010",
+        "population_y": "block_pop_2010",
     }
 )
 
 
 # Finding block-level adjusted population using the adjustment factor from the ACS 2019 data
 
-adjusted_blocks["block_population_adj_2019"] = (
-    adjusted_blocks["block_population_2010"]
-    * adjusted_blocks["block_group_adjustment_factor"]
+adjusted_blocks["block_pop_adj_2019"] = (
+    adjusted_blocks.block_pop_2010
+    * adjusted_blocks.block_group_adjustment_factor
 )
+
+assert (
+    adjusted_blocks.block_pop_adj_2019.sum()
+    > adjusted_blocks.block_pop_2010.sum()
+)
+
+assert (
+    adjusted_blocks.acs_bg_pop_2019.sum()
+    > adjusted_blocks.total_bg_pop_2010.sum()
+)
+
+total_pop = int(adjusted_blocks.block_pop_adj_2019.sum())
+
+assert 330e6 > total_pop > 324e6
+
 
 # Exporting to .csv.gz
 
