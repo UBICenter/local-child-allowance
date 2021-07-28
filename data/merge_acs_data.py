@@ -1,6 +1,4 @@
 import pandas as pd
-import numpy as np
-from pandas.core.reshape.merge import merge
 
 # Read in two files - one, a population by geography file produced by NHGIS
 # The data can be found with these filters:
@@ -33,7 +31,7 @@ blocks = pd.read_csv("master_block.csv.gz", low_memory=False,)
 
 # Fill missing values that interfere with merge with 0
 
-blocks.fillna(0)
+blocks.fillna(0, inplace=True)
 
 
 # The blockgroup is the same as the first digit of the four digit block number.
@@ -46,9 +44,9 @@ blocks["block_group"] = blocks.block // 1000
 # which is also at the block group level
 
 
-merge_list = ["state_fip", "county_fip", "census_tract", "block_group"]
+MERGE_COLS = ["state_fip", "county_fip", "census_tract", "block_group"]
 
-block_group = blocks.groupby(merge_list)[["population"]].sum().reset_index()
+block_group = blocks.groupby(MERGE_COLS)[["population"]].sum().reset_index()
 
 
 # Renaming columns to simplify merging
@@ -70,7 +68,7 @@ acs_block_groups.rename(
 # Merging the ACS and aggregated block data
 
 acs_block_data = pd.merge(
-    acs_block_groups, block_group, on=merge_list, how="outer",
+    acs_block_groups, block_group, on=MERGE_COLS, how="outer",
 )
 
 
@@ -89,7 +87,7 @@ blocks["block_group"] = blocks.block // 1000
 # Merging the acs block group level data back onto the more detailed block level data we started with.
 # This will allow us to apply the adjustment factor that we found above to all of the blocks within a block group
 
-adjusted_blocks = pd.merge(acs_block_data, blocks, on=merge_list, how="outer",)
+adjusted_blocks = acs_block_data.merge(blocks, on=MERGE_COLS, how="outer")
 
 
 # Renaming for simplicity
@@ -99,15 +97,16 @@ adjusted_blocks = adjusted_blocks.rename(
         "acs_population": "acs_bg_pop_2019",
         "population_x": "total_bg_pop_2010",
         "population_y": "block_pop_2010",
-    }
+    },
+    # inplace=True,
 )
 
 
 # Finding block-level adjusted population using the adjustment factor from the ACS 2019 data
 
 adjusted_blocks["block_pop_adj_2019"] = (
-    adjusted_blocks.block_pop_2010
-    * adjusted_blocks.block_group_adjustment_factor
+    adjusted_blocks["block_pop_2010"]
+    * adjusted_blocks["block_group_adjustment_factor"]
 )
 
 assert (
