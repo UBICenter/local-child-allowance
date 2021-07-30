@@ -92,13 +92,13 @@ adjusted_blocks = acs_block_data.merge(blocks, on=MERGE_COLS, how="outer")
 
 # Renaming for simplicity
 
-adjusted_blocks = adjusted_blocks.rename(
+adjusted_blocks.rename(
     columns={
         "acs_population": "acs_bg_pop_2019",
         "population_x": "total_bg_pop_2010",
         "population_y": "block_pop_2010",
     },
-    # inplace=True,
+    inplace=True,
 )
 
 
