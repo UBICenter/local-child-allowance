@@ -11,7 +11,7 @@ import pandas as pd
 
 
 acs_block_groups = pd.read_csv(
-    "original/nhgis/nhgis0002_csv/nhgis0002_ds244_20195_2019_blck_grp.csv",
+    "data/original/nhgis/nhgis0002_csv/nhgis0002_ds244_20195_2019_blck_grp.csv",
     usecols=[
         "YEAR",
         "STATEA",
@@ -26,7 +26,7 @@ acs_block_groups = pd.read_csv(
 
 # low_memory = False is necessary to avoid an error message when loading in the huge block-level data
 
-blocks = pd.read_csv("master_block.csv.gz", low_memory=False,)
+blocks = pd.read_csv("data/master_block.csv.gz", low_memory=False,)
 
 
 # Fill missing values that interfere with merge with 0
@@ -126,4 +126,6 @@ assert 330e6 > total_pop > 324e6
 
 # Exporting to .csv.gz
 
-adjusted_blocks.to_csv("master_block_2019_adjusted.csv.gz", compression="gzip")
+adjusted_blocks.to_csv(
+    "data/master_block_2019_adjusted.csv.gz", compression="gzip"
+)
