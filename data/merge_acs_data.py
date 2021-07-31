@@ -12,19 +12,11 @@ import pandas as pd
 
 acs_block_groups = pd.read_csv(
     "data/original/nhgis/nhgis0002_csv/nhgis0002_ds244_20195_2019_blck_grp.csv",
-    usecols=[
-        "YEAR",
-        "STATEA",
-        "COUNTYA",
-        "TRACTA",
-        "BLKGRPA",
-        "NAME_E",
-        "ALUBE001",
-        "ALUBM001",
-    ],
+    usecols=["YEAR", "STATEA", "COUNTYA", "TRACTA", "BLKGRPA", "ALUBE001",],
 )
 
-# low_memory = False is necessary to avoid an error message when loading in the huge block-level data
+# low_memory = False is necessary to avoid an error message when loading in
+# the huge block-level data
 
 blocks = pd.read_csv("data/master_block.csv.gz", low_memory=False,)
 
@@ -57,9 +49,7 @@ acs_block_groups.rename(
         "COUNTYA": "county_fip",
         "TRACTA": "census_tract",
         "BLKGRPA": "block_group",
-        "NAME_E": "acs_name",
         "ALUBE001": "acs_population",
-        "ALUBM001": "acs_pop_moe",
     },
     inplace=True,
 )
