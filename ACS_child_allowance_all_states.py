@@ -13,7 +13,7 @@ with open("puma_upper_lower_leg_district.csv", "wb") as file:
 puma_upper_lower_leg_district = pd.read_csv("puma_upper_lower_leg_district.csv")
 
 person2018 = pd.read_stata(
-    "/Users/benboelert/Desktop/spm_2018_pu.dta",
+    "spm_2018_pu.dta",
     columns=[
         "spm_id",
         "puma",
@@ -83,7 +83,7 @@ def pct_chg_deep(data):
 
 
 person = pd.concat(years_frame)
-pov(person)
+
 puma_upper_lower_leg_district.puma = puma_upper_lower_leg_district.puma.astype(int)
 puma_upper_lower_leg_district.puma = puma_upper_lower_leg_district.puma.astype(
     str
@@ -107,7 +107,6 @@ spmu["new_resources"] = spmu.spm_resources + ANNUAL_CHILD_ALLOWANCE * spmu.spmu_
 person_clean3 = person_clean.merge(
     spmu[["spm_id", "new_resources", "year"]], on=["year", "spm_id"]
 )
-pov(person_clean3)
 pov_by_state = person_clean3.groupby(["st"]).apply(pov).reset_index()
 pov_by_state["pct_chg"] = pct_chg(pov_by_state)
 pov_by_state["pct_chg_deep"] = pct_chg_deep(pov_by_state)
@@ -214,11 +213,11 @@ ff_pov_bs_kids.layout.width = 800
 ff_pov_bs_kids.write_image("ff_pov_bs_kids.png")
 
 person_clean3.rename(columns={"puma": "state_puma"}, inplace=True)
-person_clean3_kids = person_clean3[(person_clean3.child==1)]
+person_clean3_kids = person_clean3[(person_clean3.child == 1)]
 pov(person_clean3_kids)
 person_clean3.st
-person_clean3_CA = person_clean3[(person_clean3.st==6)]
-person_clean3_CA_kids = person_clean3_CA[(person_clean3.child==1)]
+person_clean3_CA = person_clean3[(person_clean3.st == 6)]
+person_clean3_CA_kids = person_clean3_CA[(person_clean3.child == 1)]
 pov(person_clean3_CA)
 pov(person_clean3_CA_kids)
 person_clean3.state_puma = person_clean3.state_puma.astype(int)
