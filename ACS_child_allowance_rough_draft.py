@@ -132,7 +132,6 @@ poverty_change_CA = pov(just_california)
 poverty_change_CA
 poverty_change_CA_children = pov(just_california_children)
 poverty_change_CA_pct = pct_chg(poverty_change_CA)
-poverty_change_CA_pct
 poverty_change_CA_children_pct = pct_chg(poverty_change_CA_children)
 poverty_change_CA_children_pct
 just_california["puma"] = just_california["puma"].astype(int)
