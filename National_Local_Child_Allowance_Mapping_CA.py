@@ -177,7 +177,7 @@ pov_child_assembly_map.update_traces(
 )
 pov_child_assembly_map.update(layout_coloraxis_showscale=False)
 pov_child_assembly_map = ubicenter.format_fig(pov_child_assembly_map, show=False)
-pov_child_assembly_map.write_html("us_child_poverty_map_assembly.html")
+pov_child_assembly_map.write_html("lower_district.html")
 assembly_pov_CA = assembly_pov_names[(assembly_pov_names.st == 6)]
 pov_child_assembly_map_CA = px.choropleth(
     assembly_pov_CA,
@@ -223,7 +223,7 @@ pov_child_assembly_map_CA.update_traces(
 pov_child_assembly_map_CA.update(layout_coloraxis_showscale=False)
 pov_child_assembly_map_CA.update_geos(fitbounds="locations", visible=False)
 pov_child_assembly_map_CA = ubicenter.format_fig(pov_child_assembly_map_CA, show=False)
-pov_child_assembly_map_CA.write_html("pov_child_assembly_map_CA.html")
+pov_child_assembly_map_CA.write_html("lower_district_CA.html")
 pov_child_senate_map = px.choropleth(
     senate_pov_names,
     color="child_pct_change_100",
@@ -269,8 +269,7 @@ pov_child_senate_map.update_traces(
 )
 pov_child_senate_map.update(layout_coloraxis_showscale=False)
 pov_child_senate_map = ubicenter.format_fig(pov_child_senate_map, show=False)
-
-pov_child_senate_map.write_html("us_child_poverty_map_senate.html")
+pov_child_senate_map.write_html("upper_district.html")
 senate_pov_CA = senate_pov_names[(senate_pov_names.st == 6)]
 pov_child_senate_map_CA = px.choropleth(
     senate_pov_CA,
@@ -317,4 +316,4 @@ pov_child_senate_map_CA.update_traces(
 )
 pov_child_senate_map_CA.update(layout_coloraxis_showscale=False)
 pov_child_senate_map_CA = ubicenter.format_fig(pov_child_senate_map_CA, show=False)
-pov_child_senate_map_CA.write_html("pov_child_senate_map_CA.html")
+pov_child_senate_map_CA.write_html("upper_district_CA.html")
