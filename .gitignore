@@ -137,3 +137,4 @@ spm_2016_pu.dta
 spm_2018_pu.dta
 .gitignore
 spm_2017_pu.dta
+data/raw/large/*
